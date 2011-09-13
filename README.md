@@ -9,8 +9,8 @@ and the [PlayerNSD][2] daemon.
 
 For licensing details, please see the COPYING file.
 
-	[1]: http://playerstage.sourceforge.net/index.php?src=player
-	[2]: http://github.com/raedwulf/playernsd
+ [1]: http://playerstage.sourceforge.net/index.php?src=player
+ [2]: http://github.com/raedwulf/playernsd
 
 Dependencies
 ------------
@@ -21,9 +21,9 @@ Dependencies
 * [Python][4] (for python example, tested with 2.7)
 * [SWIG][5] (for compiling python bindings)
 
-	[3]: http://www.cmake.org/
-	[4]: http://www.python.org/
-	[5]: http://www.swig.org/
+ [3]: http://www.cmake.org/
+ [4]: http://www.python.org/
+ [5]: http://www.swig.org/
 
 Building
 --------
