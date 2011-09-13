@@ -1,0 +1,49 @@
+include "pioneer.inc"
+include "map.inc"
+
+name "faulty-test"
+quit_time 3600
+resolution 0.02
+#speedup -1
+
+window
+(
+   size [800.000 800.000] # in pixels
+   show_data 1
+
+   center [0 0]
+   rotate [0 0]
+   scale 27.5 # pixels per meter
+)
+
+# load an environment bitmap
+floorplan
+(
+   name "cave"
+   size [25.000 25.000 0.500]
+   pose [0 0 0 0]
+   bitmap "bitmaps/cave.png"
+)
+
+pioneer2dx
+(
+   # can refer to the robot by this name
+   name "r0"
+   pose [ -10 -11 0 45 ]
+
+   # report error-free position in world coordinates
+   localization "gps"
+   localization_origin [ 0 0 0 0 ]
+)
+
+pioneer2dx
+(
+   # can refer to the robot by this name
+   name "r1"
+   pose [ -10 -5 0 45 ]
+
+   # report error-free position in world coordinates
+   localization "gps"
+   localization_origin [ 0 0 0 0 ]
+)
+

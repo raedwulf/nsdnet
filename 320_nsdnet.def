@@ -1,0 +1,120 @@
+description {
+ * @brief NS daemon network interface.
+
+The @p NS daemon network interface allows communication with ns2/3 daemon.
+}
+
+
+/** Command subtype: send a message. */
+message { CMD, SEND, 1, player_nsdnet_send_cmd_t };
+/** Request/reply subtype: property set. */
+message { CMD, PROPSET, 2, player_nsdnet_propset_cmd_t };
+
+/** Data subtype: message received. */
+message { DATA, RECV, 1, player_nsdnet_recv_data_t };
+/** Data subtype: error received. */
+message { DATA, ERROR, 2, player_nsdnet_error_data_t };
+
+/** Request/reply subtype: get a list of clients. */
+message { REQ, LISTCLIENTS, 1, player_nsdnet_listclients_req_t };
+/** Request/reply subtype: get a property's value. */
+message { REQ, PROPGET, 2, player_nsdnet_propget_req_t };
+
+/** Client ID maximum length. */
+#define PLAYER_NSDNET_CLIENTID_LEN 64
+/** Maximum property key length. */
+#define PLAYER_NSDNET_KEY_LEN 128
+
+/** Broadcast type code. */
+#define PLAYER_NSDNET_TYPE_BROADCAST 0
+/** Tell type code. */
+#define PLAYER_NSDNET_TYPE_TELL 1
+/** Binary type code. */
+#define PLAYER_NSDNET_TYPE_BIN 2
+
+/** No error code. */
+#define PLAYER_NSDNET_ERROR_NONE 0
+/** Protocol error code. */
+#define PLAYER_NSDNET_ERROR_PROTOCOL 1
+/** Unknown client error code. */
+#define PLAYER_NSDNET_ERROR_UNKNOWN_CLIENT 2
+/** Setting property error code. */
+#define PLAYER_NSDNET_ERROR_PROPSET 3
+/** Miscellaneous error code. */
+#define PLAYER_NSDNET_ERROR_MISCELLANEOUS 9
+
+/** @brief Command: send (@ref PLAYER_NSDNET_CMD_SEND)
+
+The @p nsdnet interface accepts a command that is a message to be sent to another player. */
+typedef struct player_nsdnet_send_cmd
+{
+ /** The client id of the destination node. */
+ char clientid[PLAYER_NSDNET_CLIENTID_LEN];
+ /** The type of message. */
+ char type;
+ /** The length of the message to send. */
+ uint32_t msg_count;
+ /** The message to send. */
+ char *msg;
+} player_nsdnet_send_cmd_t;
+
+/** @brief Command: propset (@ref PLAYER_NSDNET_CMD_PROPSET)
+
+The @p nsdnet interface accepts a command that sets a property on the daemon. */
+typedef struct player_nsdnet_propset_cmd
+{
+ /** The key. */
+ char key[PLAYER_NSDNET_KEY_LEN];
+ /** The length of the value. */
+ uint32_t value_count;
+ /** The value. */
+ char *value;
+} player_nsdnet_propset_cmd_t;
+
+/** @brief Data: receive (@ref PLAYER_NSDNET_DATA_RECV)
+
+The @p nsdnet interface accepts data that is a message to be received from another player. */
+typedef struct player_nsdnet_recv_data
+{
+ /** The client id of the source node. */
+ char clientid[PLAYER_NSDNET_CLIENTID_LEN];
+ /** The type of message. */
+ char type;
+ /** The length of the message to send. */
+ uint32_t msg_count;
+ /** The message to send. */
+ char *msg;
+} player_nsdnet_recv_data_t;
+
+/** @brief Data: error (@ref PLAYER_NSDNET_DATA_ERROR)
+
+The @p nsdnet interface accepts data that is the error state. */
+typedef struct player_nsdnet_error_data
+{
+ /** The type of error. */
+ char code;
+ /** The length of the message to send. */
+ uint32_t msg_count;
+ /** The message to send. */
+ char *msg;
+} player_nsdnet_error_data_t;
+
+/** @brief Request/reply: get list of clients (@ref PLAYER_NSDNET_REQ_LISTCLIENTS) */
+typedef struct player_nsdnet_listclients_req
+{
+ /** The number of bytes in the client list. */
+ uint32_t clients_count;
+ /** The array of clients packed into a single stream of bytes. */
+ char *clients;
+} player_nsdnet_listclients_req_t;
+
+/** @brief Request/reply: get value of property (@ref PLAYER_NSDNET_REQ_PROPGET) */
+typedef struct player_nsdnet_propget_req
+{
+ /** The key. */
+ char key[PLAYER_NSDNET_KEY_LEN];
+ /** The length of the value. */
+ uint32_t value_count;
+ /** The value. */
+ char *value;
+} player_nsdnet_propget_req_t;
