@@ -70,6 +70,36 @@ Examples
 
 ### Config files
 
+The general additions to the Player config files are that you include an interface
+block:
+
+	interface
+	(
+		name "nsdnet"
+		code 320
+		plugin "libnsdnet"
+	)
+
+For each robot, you typically would need to include a driver for the network
+communication. You need at least ``plugin``, ``id`` and ``provides`` keys as follows:
+
+	driver
+	(
+		name "nsdnetdriver"
+		plugin "libnsdnet_driver"
+		provides ["nsdnet:0"]
+		id "node0"
+	)
+
+When the position is needed to be known, it is retrieved from a position2d driver
+specified by a line such as ``uses ["position2d:0"]`` in the ``nsdnetdriver`` driver block.
+
+Please see complete examples 
+[examples/nsdnet_example.cfg][1] and [example/nsdnet_position_example.cfg][2] for examples.
+
+ [1]: http://github.com/raedwulf/nsdnet/blob/master/examples/nsdnet_example.cfg
+ [2]: http://github.com/raedwulf/nsdnet/blob/master/examples/nsdnet_position_example.cfg
+
 ### Client proxy
 
 TODO
