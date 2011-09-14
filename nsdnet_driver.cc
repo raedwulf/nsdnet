@@ -307,11 +307,11 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
          switch (state)
          {
             case PlayerNSDClient::StateGreeting:
-               std::cout << "Registering with playernsd server with id " << clientID << std::endl;
+               std::cout << "NSDNetDriver: Registering with playernsd server with id " << clientID << std::endl;
                client->Register(clientID);
                break;
             case PlayerNSDClient::StateRegistered:
-               std::cout << "Registered with playernsd server with id " << clientID << std::endl;
+               std::cout << "NSDNetDriver: Registered with playernsd server with id " << clientID << std::endl;
                // Initialisation
                ss << poseX << " " << poseY << " " << poseA;
                //std::cout << "Sending off the initial positions of the the robot of " << clientID << " " << ss.str() << std::endl;
@@ -356,7 +356,7 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
             delete[] receivedMsg.msg;
          receivedMsg.msg = new char[receivedMsg.msg_count];
          strncpy(receivedMsg.msg, data.c_str(), receivedMsg.msg_count);
-         std::cout << "Received text message from " << source << std::endl;
+         std::cout << "NSDNetDriver: Received text message from " << source << std::endl;
          Publish(device_addr, PLAYER_MSGTYPE_DATA, PLAYER_NSDNET_DATA_RECV, &receivedMsg,
             sizeof(receivedMsg), NULL);
       }
@@ -375,7 +375,7 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
             delete[] receivedMsg.msg;
          receivedMsg.msg = new char[len];
          memcpy(receivedMsg.msg, data, len);
-         std::cout << "Received binary message from " << source << std::endl;
+         std::cout << "NSDNetDriver: Received binary message from " << source << std::endl;
          Publish(device_addr, PLAYER_MSGTYPE_DATA, PLAYER_NSDNET_DATA_RECV, &receivedMsg,
             sizeof(receivedMsg), NULL);
       }
@@ -394,6 +394,7 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
          for (unsigned int i = 0; i < clientList.size(); i++)
             strcpy(((clientIDString *)respListClients.clients)[i], clientList[i].c_str());
          dataReadyListClients = true;
+         std::cout << "NSDNetDriver: Received client list response." << std::endl;
          condListClients.notify_one();
       }
 
@@ -416,6 +417,7 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
          memset(respPropGet.value, 0, value.size() + 1);
          strcpy(respPropGet.value, value.c_str());
          dataReadyPropertyValue = true;
+         std::cout << "NSDNetDriver: Received property value " << variable << " = " << value<< std::endl;
          condPropertyValue.notify_one();
       }
 

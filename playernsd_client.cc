@@ -68,8 +68,6 @@ void PlayerNSDClient::processReader()
       std::string command;
       std::getline(response_stream, command);
 
-      std::cout << "Received " << command << std::endl;
-
       // Tokenise the greeting.
       boost::char_separator<char> sep(" ");
       boost::tokenizer<boost::char_separator<char> > toker(command, sep);
