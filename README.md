@@ -49,17 +49,16 @@ Before executing player, playernsd need to be executed.
 
 	$ playernsd/playernsd
 
-The interface plugin and driver plugin are loaded by the example.cfg
-configuration file. Copy this to the directory where you built the example and
-execute Player:
+The interface plugin and driver plugin are loaded by the nsdnet_example.cfg
+configuration file. A supplied example, nsdnet_example.cfg, can be loaded as follows:
 
-	$ player nsdnet_example.cfg
+	$ player $PSINSTALLPATH/share/stage/worlds/nsdnet_example.cfg
 
 In a separate terminal, execute the client program:
 
 	$ ./nsdnet_client id
 
-The id is a number, (0 or 1) to specify which node you want to run.
+The id is a number, (``0`` or ``1``) to specify which node you want to run.
 
 You should see commands, data and requests moving between the client and the
 driver.
