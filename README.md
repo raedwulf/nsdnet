@@ -38,6 +38,12 @@ of player/stage (on prepackaged binaries this is usually /usr on Unix systems).
 	$ cmake .. -DCMAKE_MODULE_PATH=$PSINSTALLPATH/share/cmake/Modules -DCMAKE_INSTALL_PREFIX=$PSINSTALLPATH
 	$ make && make install
 
+### Problems
+
+There seems to be an issue with the Player C++ bindings on some systems.
+The current workaround (if you do not require C++ examples) has been to disable those
+examples for the time being.
+
 Running
 -------
 
@@ -100,6 +106,10 @@ Please see complete examples
  [2]: http://github.com/raedwulf/nsdnet/blob/master/examples/nsdnet_position_example.cfg
 
 ### Client proxy
+
+There are examples for a number of platforms C, C++, Python. 
+
+	
 
 TODO
 ----

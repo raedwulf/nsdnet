@@ -26,9 +26,9 @@ PLAYER_ADD_PLUGIN_INTERFACE (nsdnet 320_nsdnet.def SOURCES dev_nsdnet.c)
 # Note the use of files generated during the PLAYER_ADD_PLUGIN_INTERFACE step
 PLAYER_ADD_PLUGIN_DRIVER (nsdnet_driver SOURCES nsdnet_driver.cc playernsd_client.cc nsdnet_interface.h nsdnet_xdr.h)
 PLAYER_ADD_PLAYERC_CLIENT (nsdnet_client SOURCES examples/example_client.c nsdnet_interface.h)
-PLAYER_ADD_PLAYERCPP_CLIENT (nsdnet_client_cpp SOURCES examples/example_client.cc nsdnetproxy.h)
+//PLAYER_ADD_PLAYERCPP_CLIENT (nsdnet_client_cpp SOURCES examples/example_client.cc nsdnetproxy.h)
 TARGET_LINK_LIBRARIES (nsdnet_client nsdnet)
-TARGET_LINK_LIBRARIES (nsdnet_client_cpp nsdnet)
+//TARGET_LINK_LIBRARIES (nsdnet_client_cpp nsdnet)
 TARGET_LINK_LIBRARIES (nsdnet_driver ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES})
 
 # Generate SWIG Python bindings
