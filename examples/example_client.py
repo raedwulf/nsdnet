@@ -36,7 +36,6 @@ print 'Client id:', proxy.GetProperty()
 proxy.RequestProperty("self.index")
 print 'Client index:', proxy.GetProperty()
 
-# set callbacks
 # get a list of clients connected
 proxy.RequestClientList()
 client.Read()
@@ -55,12 +54,15 @@ for i in range(0, 1000):
     #print "Setting speed:", speed, "direction:", direction
     #posproxy.SetSpeed(speed, direction * math.pi / 180.0)
 
-  # check the messages
+  # Check for messages
   if (client.Peek()):
+    # Read player client messages
     client.Read()
+    # Get the current position
     px = posproxy.GetXPos()
     py = posproxy.GetYPos()
     pyaw = posproxy.GetYaw()
+    # Create a picked tuple of the position
     pp = pickle.dumps(("position", px, py, pyaw))
     # Broadcast position
     proxy.SendMessage(pp)
@@ -68,6 +70,7 @@ for i in range(0, 1000):
     if proxy.ReceiveMessageCount() > 0:
       msg = proxy.ReceiveMessage()
       if msg != None:
+        # Unpickle the message
         msgpickle = pickle.loads(msg.message)
         print "%s: %s [%d]" % (msg.source, msgpickle, i)
   # Broadcast Hello World

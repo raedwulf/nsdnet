@@ -99,7 +99,7 @@ communication. You need at least ``plugin``, ``id`` and ``provides`` keys as fol
 When the position is needed to be known, it is retrieved from a position2d driver
 specified by a line such as ``uses ["position2d:0"]`` in the ``nsdnetdriver`` driver block.
 
-Please see complete examples 
+Please see complete examples
 [examples/nsdnet_example.cfg][1] and [example/nsdnet_position_example.cfg][2] for examples.
 
  [1]: http://github.com/raedwulf/nsdnet/blob/master/examples/nsdnet_example.cfg
@@ -107,9 +107,96 @@ Please see complete examples
 
 ### Client proxy
 
-There are examples for a number of platforms C, C++, Python. 
+There are examples for a number of platforms [C][1], [C++][2], [Python][3].
 
-	
+ [4]: http://github.com/raedwulf/nsdnet/blob/master/examples/example_client.c
+ [5]: http://github.com/raedwulf/nsdnet/blob/master/examples/example_client.cc
+ [6]: http://github.com/raedwulf/nsdnet/blob/master/examples/example_client.py
+
+The python example has more features, and will be described here:
+
+An example python client typically needs to import the ``playercpp`` and ``nsdnet``
+libraries in order to run.  An example of this is:
+
+```python
+	import sys
+	import time
+	import math
+	import random
+	import pickle
+	from playercpp import *
+	from nsdnet import *
+```
+
+As the client may be one of many, it needs to identify which nsdnet driver it is using.
+The example makes use of a single integer ([nsdnet_position_example.cfg][2] has 2
+devices, 0 or 1).  Using this, the client can initialise.
+
+```python
+	# takes a parameter for the index
+	if len(sys.argv) < 2:
+	  print "Needs one parameter."
+	  sys.exit(1)
+	else:
+	  index = int(sys.argv[1])
+	  print "Using index", index
+	# create a client object and connect it
+	client = PlayerClient('localhost', 6665)
+
+	# create a proxy for nsdnet:0
+	proxy = NSDNetProxy(client, index)
+	posproxy= Position2dProxy(client, index)
+```
+
+The client can get some properties from the PlayerNSD daemon, these usually need to be
+defined in scripts or simulations running on the daemon.  However, ``self.id`` is
+always defined as the network id of the client.
+
+```python
+	# get our client id
+	proxy.RequestProperty("self.id")
+	print 'Client id:', proxy.GetProperty()
+	# get our index
+	proxy.RequestProperty("self.index")
+	print 'Client index:', proxy.GetProperty()
+```
+
+To get a list of clients:
+```python
+	# get a list of clients connected
+	proxy.RequestClientList()
+	client.Read()
+	print 'Client List:'
+	for cid in proxy.GetClientList():
+		print cid
+```
+
+The the main loop of the client proxy is straightfoward:
+```python
+	while True:
+	  # Check for messages
+	  if (client.Peek()):
+	    # Read player client messages
+	    client.Read()
+	    # Get the current position
+	    px = posproxy.GetXPos()
+	    py = posproxy.GetYPos()
+	    pyaw = posproxy.GetYaw()
+	    # Create a picked tuple of the position
+	    pp = pickle.dumps(("position", px, py, pyaw))
+	    # Broadcast position
+	    proxy.SendMessage(pp)
+	    # Anything to receive?
+	    if proxy.ReceiveMessageCount() > 0:
+	      msg = proxy.ReceiveMessage()
+	      if msg != None:
+	        # Unpickle the message
+	        msgpickle = pickle.loads(msg.message)
+	        print "%s: %s [%d]" % (msg.source, msgpickle, i)
+	  # Broadcast Hello World
+	  proxy.SendMessage(pickle.dumps(("string", "Hello World 1")))
+	  time.sleep(1.0)
+```
 
 TODO
 ----
