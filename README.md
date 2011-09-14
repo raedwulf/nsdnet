@@ -15,11 +15,14 @@ For licensing details, please see the COPYING file.
 Dependencies
 ------------
 
-* [Player][1] (tested with 3.0.2)
 * [CMake][3] (tested with 2.8.1)
-* [PlayerNSD][2] (tested with 0.0.1)
-* [Python][4] (for python example, tested with 2.7)
 * [SWIG][5] (for compiling python bindings)
+* [Player][1] (tested with 3.0.2)
+* [PlayerNSD][2] (tested with 0.0.1)
+
+### Optional Dependencies
+
+* [Python][4] (for python example, tested with 2.7)
 
  [3]: http://www.cmake.org/
  [4]: http://www.python.org/
