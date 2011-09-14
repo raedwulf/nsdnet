@@ -10,6 +10,7 @@ import sys
 import time
 import math
 import random
+import pickle
 from playercpp import *
 from nsdnet import *
 
@@ -54,10 +55,14 @@ for i in range(0, 1000):
     #print "Setting speed:", speed, "direction:", direction
     #posproxy.SetSpeed(speed, direction * math.pi / 180.0)
   # Get geometry of position
-  #posproxy.RequestGeom()
+  posproxy.RequestGeom()
+  p = posproxy.GetOffset()
+  pp = pickle.dumps((p.px, p.py, p.pyaw))
+
   # check the messages
   if (client.Peek()):
     client.Read()
+    # Anything to receive?
     if proxy.ReceiveMessageCount() > 0:
       msg = proxy.ReceiveMessage()
       if msg != None:
@@ -65,7 +70,10 @@ for i in range(0, 1000):
     time.sleep(0)
   else:
     print "Sending Hello World"
+    # Broadcast Hello World
     proxy.SendMessage("Hello World")
+    # Broadcast position
+    proxy.SendMessage(pp)
     time.sleep(0.1)
 
 del proxy
