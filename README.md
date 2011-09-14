@@ -132,7 +132,7 @@ libraries in order to run.  An example of this is:
 ```
 
 As the client may be one of many, it needs to identify which nsdnet driver it is using.
-The example makes use of a single integer ([nsdnet_position_example.cfg][2] has 2
+The example makes use of a single integer ([nsdnet_position_example.cfg][8] has 2
 devices, 0 or 1).  Using this, the client can initialise.
 
 ```python
