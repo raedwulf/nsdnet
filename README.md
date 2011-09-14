@@ -162,6 +162,7 @@ always defined as the network id of the client.
 ```
 
 To get a list of clients:
+
 ```python
 	# get a list of clients connected
 	proxy.RequestClientList()
@@ -172,6 +173,7 @@ To get a list of clients:
 ```
 
 The the main loop of the client proxy is straightfoward:
+
 ```python
 	while True:
 	  # Check for messages
