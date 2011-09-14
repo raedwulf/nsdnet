@@ -54,27 +54,26 @@ for i in range(0, 1000):
     #direction = (random.random() - 0.5) * 120
     #print "Setting speed:", speed, "direction:", direction
     #posproxy.SetSpeed(speed, direction * math.pi / 180.0)
-  # Get geometry of position
-  posproxy.RequestGeom()
-  p = posproxy.GetOffset()
-  pp = pickle.dumps((p.px, p.py, p.pyaw))
 
   # check the messages
   if (client.Peek()):
     client.Read()
+    px = posproxy.GetXPos()
+    py = posproxy.GetYPos()
+    pyaw = posproxy.GetYaw()
+    pp = pickle.dumps(("position", px, py, pyaw))
+    # Broadcast position
+    proxy.SendMessage(pp)
     # Anything to receive?
     if proxy.ReceiveMessageCount() > 0:
       msg = proxy.ReceiveMessage()
       if msg != None:
-        print "%s: %s [%d]" % (msg.source, msg.message, i)
-    time.sleep(0)
-  else:
-    print "Sending Hello World"
-    # Broadcast Hello World
-    proxy.SendMessage("Hello World")
-    # Broadcast position
-    proxy.SendMessage(pp)
-    time.sleep(0.1)
+        msgpickle = pickle.loads(msg.message)
+        print "%s: %s [%d]" % (msg.source, msgpickle, i)
+  # Broadcast Hello World
+  proxy.SendMessage(pickle.dumps(("string", "Hello World 1")))
+  time.sleep(1.0)
+
 
 del proxy
 del posproxy

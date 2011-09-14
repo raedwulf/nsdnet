@@ -22,13 +22,10 @@ PlayerNSDClient::PlayerNSDClient(PlayerNSDClient::Handler& handler) :
 
 PlayerNSDClient::~PlayerNSDClient(void)
 {
-   std::ostream request_stream(&request);
-   request_stream << "bye\n";
-   boost::asio::write(socket, request);
-   socket.close();
+   Close();
 }
 
-void PlayerNSDClient::Connect(const std::string& host, const std::string& port)
+bool PlayerNSDClient::Connect(const std::string& host, const std::string& port)
 {
    tcp::resolver resolver(ioService);
    tcp::resolver::query query(host, port);
@@ -45,14 +42,34 @@ void PlayerNSDClient::Connect(const std::string& host, const std::string& port)
       catch (std::exception& e)
       {
          std::cerr << "Exception: " << e.what() << "\n";
+         return false;
       }
       ++iterator;
    }
    changeState(StateConnected);
 
+   this->id = id;
+   this->host = host;
+   this->port = port;
+
    // Start threads
    reader = boost::thread(&PlayerNSDClient::processReader, this);
    writer = boost::thread(&PlayerNSDClient::processWriter, this);
+
+   return true;
+}
+
+void PlayerNSDClient::Close()
+{
+   reader.interrupt();
+   writer.interrupt();
+
+   boost::system::error_code error;
+   std::ostream request_stream(&request);
+   request_stream << "bye\n";
+   boost::asio::write(socket, request, error);
+
+   socket.close();
 }
 
 void PlayerNSDClient::processReader()
@@ -60,13 +77,28 @@ void PlayerNSDClient::processReader()
    std::cout << "Starting reader..." << std::endl;
    while (true)
    {
+      boost::system::error_code error;
+
       // Read until newline
-      boost::asio::read_until(socket, response, '\n');
+      //std::cout << id <<  ": begin read command..." << std::endl;
+      boost::asio::read_until(socket, response, '\n', error);
+      if (error == boost::asio::error::eof)
+      {
+         std::cout << "Got EOF... stopping reader" << std::endl;
+         return;
+      }
+      else if (error)
+      {
+         std::cout << "ASIO Error: " << error.message() << std::endl;
+         return;
+      }
 
       // Process the greeting.
       std::istream response_stream(&response);
       std::string command;
       std::getline(response_stream, command);
+
+      //std::cout << id <<  ": read command " << command << std::endl;
 
       // Tokenise the greeting.
       boost::char_separator<char> sep(" ");
@@ -77,16 +109,14 @@ void PlayerNSDClient::processReader()
       if (tokens[0] == "ping")
       {
          messageSendQueue.push("pong\n");
-         continue;
       }
       else if (tokens[0] == "listclients")
       {
-         tokens.erase(tokens.begin(), tokens.begin()+1);
+         //tokens.erase(tokens.begin(), tokens.begin()+1);
+         tokens.erase(tokens.begin());
          handler.ClientListResponse(tokens);
-         continue;
       }
-
-      if (connectionState < StateRegistered)
+      else if (connectionState < StateRegistered)
       {
          switch (connectionState)
          {
@@ -123,7 +153,6 @@ void PlayerNSDClient::processReader()
                if (tokens[0] == "registered")
                {
                   changeState(StateRegistered);
-                  continue;
                }
                else if (tokens[0] == "error")
                {
@@ -158,42 +187,57 @@ void PlayerNSDClient::processReader()
             std::cerr << "ERROR: Received message: " << command << std::endl;
             //throw Exception(std::string("Don't know what to do with message without tokens ") + command);;
          }
-         else if (tokens[0] == "ping")
-         {
-            messageSendQueue.push("pong\n");
-         }
          else if (tokens[0] == "msgtext")
          {
-            boost::asio::read_until(socket, response, '\n');
+            boost::asio::read_until(socket, response, '\n', error);
+            if (error == boost::asio::error::eof)
+            {
+               std::cout << "Got EOF... stopping reader" << std::endl;
+               return;
+            }
+            else if (error)
+            {
+               std::cout << "ASIO Error: " << error.message() << std::endl;
+               return;
+            }
             // Process the response.
             std::istream response_stream(&response);
             std::string message;
             std::getline(response_stream, message);
             handler.Receive(tokens[1], message);
-            continue;
          }
          else if (tokens[0] == "msgbin")
          {
             if (tokens.size() != 3)
                throw Exception(std::string("Read message error [expected 2 parameters to msgbin]"));
             std::size_t length = boost::lexical_cast<size_t>(tokens[2]);
-            boost::asio::read(socket, response, boost::asio::transfer_at_least(length - response.size()));
+            if (response.size() < length)
+            {
+               //std::cout << id << ": expecting " << length - response.size() << std::endl;
+               boost::asio::read(socket, response, boost::asio::transfer_at_least(length - response.size()), error);
+               if (error == boost::asio::error::eof)
+               {
+                  std::cout << "Got EOF... stopping reader" << std::endl;
+                  return;
+               }
+               else if (error)
+               {
+                  std::cout << "ASIO Error: " << error.message() << std::endl;
+                  return;
+               }
+            }
             std::istream response_stream(&response);
             char message[length];
+            //std::cout << id << ": response read " << length << std::endl;
             response_stream.read(message, length);
+            //std::cout << id << ": response read done " << length << std::endl;
             handler.Receive(tokens[1], length, message);
-            continue;
          }
          else if (tokens[0] == "propval")
          {
             // Remove the first two tokens.
             std::string val = command.substr(tokens[0].size() + tokens[1].size() + 2);
             handler.PropertyValue(tokens[1], val);
-         }
-         else if (tokens[0] == "listclients")
-         {
-            tokens.erase(tokens.begin());
-            handler.ClientListResponse(tokens);
          }
          else if (tokens[0] == "error")
          {
@@ -220,13 +264,14 @@ void PlayerNSDClient::processReader()
             //throw Exception(std::string("Don't know what to do with message[") + tokens[0] + "]" + command);;
          }
       }
+      //std::cout << id <<  ": end read command..." << command << std::endl;
    }
 }
 
 void PlayerNSDClient::Register(const std::string& clientID)
 {
    // Copy the client id.
-   this->clientID = clientID;
+   this->id = clientID;
    // Send reply greetings.
    if (connectionState == StateGreeting)
    {
@@ -236,7 +281,19 @@ void PlayerNSDClient::Register(const std::string& clientID)
       std::ostream request_stream(&request);
       request_stream << "greetings " << clientID <<
          " playernsd " << PLAYERNSD_PROTOCOL_VERSION << "\n";
-      boost::asio::write(socket, request);
+      boost::system::error_code error;
+      boost::asio::write(socket, request, error);
+      if (error == boost::asio::error::eof)
+      {
+         std::cout << "Got EOF... stopping writer" << std::endl;
+         return;
+      }
+      else if (error)
+      {
+         std::cout << "ASIO Error: " << error.message() << std::endl;
+         return;
+      }
+
    }
    else if (connectionState == StateWaitingRegistration)
    {
@@ -302,9 +359,21 @@ void PlayerNSDClient::processWriter()
    {
       // Wait on the queue until we have something to send.
       std::string msg = messageSendQueue.pop(true);
+      //std::cout << "Sending " << msg << std::endl;
       std::ostream request_stream(&request);
       request_stream << msg;
-      boost::asio::write(socket, request);
+      boost::system::error_code error;
+      boost::asio::write(socket, request, error);
+      if (error == boost::asio::error::eof)
+      {
+         std::cout << "Got EOF... stopping writer" << std::endl;
+         return;
+      }
+      else if (error)
+      {
+         std::cout << "ASIO Error: " << error.message() << std::endl;
+         return;
+      }
    }
 }
 
@@ -313,3 +382,5 @@ void PlayerNSDClient::changeState(ConnectionState state)
    connectionState = state;
    handler.StateChanged(state);
 }
+
+

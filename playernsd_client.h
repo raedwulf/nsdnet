@@ -60,7 +60,8 @@ class PlayerNSDClient
 
       PlayerNSDClient(Handler& handler);
       ~PlayerNSDClient(void);
-      void Connect(const std::string& host, const std::string &port);
+      bool Connect(const std::string& host, const std::string &port);
+      void Close();
       void Register(const std::string &clientID);
       void Send(const std::string& target, const std::string& data);
       void Send(const std::string& target, uint32_t len, const char *data);
@@ -88,10 +89,10 @@ class PlayerNSDClient
       boost::thread reader, writer;
    protected:
       ConnectionState connectionState;
-      std::string clientID;
       std::string protocolVersion;
       Exception exception;
       boost::locking_queue<std::string> messageSendQueue;
+      std::string id, host, port;
 
    private:
       void processReader();

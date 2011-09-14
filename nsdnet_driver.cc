@@ -28,6 +28,11 @@
 /** Number of threads per driver instance */
 #define NSDNET_THREAD_NUM 128
 
+/* Message levels */
+#define MESSAGE_ERROR					0
+#define MESSAGE_INFO						1
+#define MESSAGE_DEBUG					2
+
 /** typedef for fixed strings */
 typedef char clientIDString[PLAYER_NSDNET_CLIENTID_LEN];
 
@@ -58,6 +63,7 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
          const char *id = cf->ReadString(section, "id", NULL);
          host = cf->ReadString(section, "host", "localhost");
          port = cf->ReadString(section, "port", "9999");
+         verbose = cf->ReadBool(section, "verbose", false);
 
          // Iterate sections to find stage
          worldFile = "";
@@ -117,9 +123,11 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
          respPropGet.value = 0;
          respListClients.clients = 0;
 
-         std::cout << "Connecting to server " << host << " on port " << port << std::endl;
+         if (verbose)
+            std::cout << "Connecting to server " << host << " on port " << port << std::endl;
          client.reset(new PlayerNSDClient(*this));
-         client->Connect(host, port);
+         if (!client->Connect(host, port))
+            PLAYER_ERROR("Unable to connect to playernsd server!");
       }
 
       /**
@@ -142,7 +150,7 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
        */
       virtual int MainSetup()
       {
-         std::cout << "NSDNetDriver initialising" << std::endl;
+         PLAYER_MSG0(MESSAGE_INFO, "NSDNetDriver initialising");
          if (hasPosition2d)
          {
             position2dDevice = deviceTable->GetDevice(position2dAddr);
@@ -156,7 +164,7 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
                PLAYER_ERROR("Unable to subscribe to target device");
             }
          }
-         std::cout << "NSDNetDriver ready" << std::endl;
+         PLAYER_MSG0(MESSAGE_INFO, "NSDNetDriver ready");
          return 0;
       }
 
@@ -165,11 +173,11 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
        */
       virtual void MainQuit()
       {
-         std::cout << "Shutting NSDNetDriver down" << std::endl;
+         PLAYER_MSG0(MESSAGE_INFO, "NSDNetDriver shutting down.");
          if (hasPosition2d)
             position2dDevice->Unsubscribe(InQueue);
          boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
-         std::cout << "NSDNetDriver has been shutdown" << std::endl;
+         PLAYER_MSG0(MESSAGE_INFO, "NSDNetDriver has been shutdown");
       }
 
       /**
@@ -198,7 +206,8 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
          if (Message::MatchMessage (hdr, PLAYER_MSGTYPE_REQ,
             PLAYER_NSDNET_REQ_LISTCLIENTS, device_addr))
          {
-            std::cout << "NSDNetDriver: Got request for list clients " << std::endl;
+            if (verbose)
+               std::cout << "NSDNetDriver: Got request for list clients " << std::endl;
             client->RequestClientList();
             // Block until we know the response.
             boost::unique_lock<boost::mutex> lock(mutListClients);
@@ -214,8 +223,9 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
             PLAYER_NSDNET_CMD_SEND, device_addr))
          {
             player_nsdnet_send_cmd *cmd = (player_nsdnet_send_cmd *)data;
-            std::cout << "NSDNetDriver: Sending message to '" <<
-               (strlen(cmd->clientid)?"all":cmd->clientid) << "', " << cmd->msg << std::endl;
+            if (verbose)
+               std::cout << "NSDNetDriver: Sending message to '" <<
+                  (strlen(cmd->clientid)?"all":cmd->clientid) << "', " << cmd->msg << std::endl;
             if (strlen(cmd->clientid))
                client->Send(cmd->clientid, cmd->msg_count, cmd->msg);
             else
@@ -226,8 +236,9 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
             PLAYER_NSDNET_REQ_PROPGET, device_addr))
          {
             player_nsdnet_propget_req *req = (player_nsdnet_propget_req *)data;
-            std::cout << "NSDNetDriver: Got request for property value of " <<
-               req->key << std::endl;
+            if (verbose)
+               std::cout << "NSDNetDriver: Got request for property value of " <<
+                  req->key << std::endl;
             // Clear memory if used already
             if (respPropGet.value)
             {
@@ -246,7 +257,8 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
                   &respPropGet, sizeof(respPropGet), NULL);
                return 0;
             }
-            std::cout << "NSDNetDriver: Unhandled key by driver, passing on to daemon " << req->key << std::endl;
+            if (verbose)
+               std::cout << "NSDNetDriver: Unhandled key by driver, passing on to daemon " << req->key << std::endl;
             client->PropertyGet(req->key);
             // Block until we know the response.
             boost::unique_lock<boost::mutex> lock(mutPropertyValue);
@@ -261,8 +273,9 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
             PLAYER_NSDNET_CMD_PROPSET, device_addr))
          {
             player_nsdnet_propset_cmd *cmd = (player_nsdnet_propset_cmd *)data;
-            std::cout << "NSDNetDriver: Send property set for property " << cmd->key <<
-               " with value " << cmd->value << std::endl;
+            if (verbose)
+               std::cout << "NSDNetDriver: Send property set for property " << cmd->key <<
+                  " with value " << cmd->value << std::endl;
             client->PropertySet(cmd->key, cmd->value);
             return 0;
          }
@@ -276,7 +289,8 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
             y = _data->pos.py - localizationY;
             a = _data->pos.pa - localizationA;
             ss << x << " " << y << " " << a;
-            std::cout << "NSDNetDriver: Position2d data message " << ss.str() << std::endl;
+            if (verbose)
+               std::cout << "NSDNetDriver: Position2d data message " << ss.str() << std::endl;
             client->PropertySet("self.position", ss.str());
             return 0;
          }
@@ -290,7 +304,8 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
             y = geom->pose.py - localizationY;
             z = geom->pose.pz - localizationA;
             ss << x << " " << y << " " << z;
-            std::cout << "NSDNetDriver: Position2d geom message " << ss.str() << std::endl;
+            if (verbose)
+               std::cout << "NSDNetDriver: Position2d geom message " << ss.str() << std::endl;
             client->PropertySet("self.position", ss.str());
             return 0;
          }
@@ -307,11 +322,13 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
          switch (state)
          {
             case PlayerNSDClient::StateGreeting:
-               std::cout << "NSDNetDriver: Registering with playernsd server with id " << clientID << std::endl;
+               if (verbose)
+                  std::cout << "NSDNetDriver: Registering with playernsd server with id " << clientID << std::endl;
                client->Register(clientID);
                break;
             case PlayerNSDClient::StateRegistered:
-               std::cout << "NSDNetDriver: Registered with playernsd server with id " << clientID << std::endl;
+               if (verbose)
+                  std::cout << "NSDNetDriver: Registered with playernsd server with id " << clientID << std::endl;
                // Initialisation
                ss << poseX << " " << poseY << " " << poseA;
                //std::cout << "Sending off the initial positions of the the robot of " << clientID << " " << ss.str() << std::endl;
@@ -333,12 +350,14 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
          {
             case PlayerNSDClient::ServerErrorClientIDInUse:
                clientID += "_";
-               std::cout << "Playernsd error: Conflicting client id, retrying with "
-                  << clientID << std::endl;
+               if (verbose)
+                  std::cout << "Playernsd error: Conflicting client id, retrying with "
+                     << clientID << std::endl;
                client->Register(clientID);
                break;
             default:
-               std::cout << "Playernsd error: " << message << std::endl;
+               if (verbose)
+                  std::cout << "Playernsd error: " << message << std::endl;
                break;
          }
       }
@@ -356,7 +375,8 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
             delete[] receivedMsg.msg;
          receivedMsg.msg = new char[receivedMsg.msg_count];
          strncpy(receivedMsg.msg, data.c_str(), receivedMsg.msg_count);
-         std::cout << "NSDNetDriver: Received text message from " << source << std::endl;
+         if (verbose)
+            std::cout << "NSDNetDriver: Received text message from " << source << std::endl;
          Publish(device_addr, PLAYER_MSGTYPE_DATA, PLAYER_NSDNET_DATA_RECV, &receivedMsg,
             sizeof(receivedMsg), NULL);
       }
@@ -375,7 +395,8 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
             delete[] receivedMsg.msg;
          receivedMsg.msg = new char[len];
          memcpy(receivedMsg.msg, data, len);
-         std::cout << "NSDNetDriver: Received binary message from " << source << std::endl;
+         if (verbose)
+            std::cout << "NSDNetDriver: Received binary message from " << source << std::endl;
          Publish(device_addr, PLAYER_MSGTYPE_DATA, PLAYER_NSDNET_DATA_RECV, &receivedMsg,
             sizeof(receivedMsg), NULL);
       }
@@ -394,7 +415,8 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
          for (unsigned int i = 0; i < clientList.size(); i++)
             strcpy(((clientIDString *)respListClients.clients)[i], clientList[i].c_str());
          dataReadyListClients = true;
-         std::cout << "NSDNetDriver: Received client list response." << std::endl;
+         if (verbose)
+            std::cout << "NSDNetDriver: Received client list response." << std::endl;
          condListClients.notify_one();
       }
 
@@ -408,7 +430,8 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
          boost::lock_guard<boost::mutex> lock(mutPropertyValue);
          //player_nsdnet_propget_req_t resp;
          // TODO: Make safe.
-         std::cout << "Got propval " << variable << ": " << value << std::endl;
+         if (verbose)
+            std::cout << "Got propval " << variable << ": " << value << std::endl;
          strcpy(respPropGet.key, variable.c_str());
          respPropGet.value_count = value.size();
          if (respPropGet.value)
@@ -417,7 +440,8 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
          memset(respPropGet.value, 0, value.size() + 1);
          strcpy(respPropGet.value, value.c_str());
          dataReadyPropertyValue = true;
-         std::cout << "NSDNetDriver: Received property value " << variable << " = " << value<< std::endl;
+         if (verbose)
+            std::cout << "NSDNetDriver: Received property value " << variable << " = " << value<< std::endl;
          condPropertyValue.notify_one();
       }
 
@@ -427,6 +451,7 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
       std::string clientID;
       std::string host;
       std::string port;
+      bool verbose;
       boost::scoped_ptr<PlayerNSDClient> client;
       boost::condition_variable condListClients;
       boost::condition_variable condPropertyValue;
@@ -476,9 +501,9 @@ void NSDNetDriver_Register(DriverTable* table)
 extern "C" {
    int player_driver_init(DriverTable* table)
    {
-      std::cout << "NSDNetDriver initialising" << std::endl;
+      PLAYER_MSG0(MESSAGE_INFO, "NSDNetDriver initialising");
       NSDNetDriver_Register(table);
-      std::cout << "NSDNetDriver done" << std::endl;
+      PLAYER_MSG0(MESSAGE_INFO, "NSDNetDriver done");
       return(0);
    }
 }
