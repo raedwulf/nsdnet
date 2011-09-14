@@ -103,18 +103,18 @@ When the position is needed to be known, it is retrieved from a position2d drive
 specified by a line such as ``uses ["position2d:0"]`` in the ``nsdnetdriver`` driver block.
 
 Please see complete examples
-[examples/nsdnet_example.cfg][1] and [example/nsdnet_position_example.cfg][2] for examples.
+[examples/nsdnet_example.cfg][7] and [example/nsdnet_position_example.cfg][8] for examples.
 
- [1]: http://github.com/raedwulf/nsdnet/blob/master/examples/nsdnet_example.cfg
- [2]: http://github.com/raedwulf/nsdnet/blob/master/examples/nsdnet_position_example.cfg
+ [7]: http://github.com/raedwulf/nsdnet/blob/master/examples/nsdnet_example.cfg
+ [8]: http://github.com/raedwulf/nsdnet/blob/master/examples/nsdnet_position_example.cfg
 
 ### Client proxy
 
-There are examples for a number of platforms [C][1], [C++][2], [Python][3].
+There are examples for a number of platforms [C][9], [C++][10], [Python][11].
 
- [4]: http://github.com/raedwulf/nsdnet/blob/master/examples/example_client.c
- [5]: http://github.com/raedwulf/nsdnet/blob/master/examples/example_client.cc
- [6]: http://github.com/raedwulf/nsdnet/blob/master/examples/example_client.py
+ [9]: http://github.com/raedwulf/nsdnet/blob/master/examples/example_client.c
+ [10]: http://github.com/raedwulf/nsdnet/blob/master/examples/example_client.cc
+ [11]: http://github.com/raedwulf/nsdnet/blob/master/examples/example_client.py
 
 The python example has more features, and will be described here:
 
