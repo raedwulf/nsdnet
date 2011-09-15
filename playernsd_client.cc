@@ -85,7 +85,14 @@ void PlayerNSDClient::Close()
    boost::system::error_code error;
    std::ostream request_stream(&request);
    request_stream << "bye\n";
-   boost::asio::write(socket, request, error);
+   try
+   {
+      boost::asio::write(socket, request);
+   }
+   catch (std::exception& e)
+   {
+      std::cerr << "Exception: " << e.what() << "\n";
+   }
 
    socket.close();
 }
@@ -299,19 +306,14 @@ void PlayerNSDClient::Register(const std::string& clientID)
       std::ostream request_stream(&request);
       request_stream << "greetings " << clientID <<
          " playernsd " << PLAYERNSD_PROTOCOL_VERSION << "\n";
-      boost::system::error_code error;
-      boost::asio::write(socket, request, error);
-      if (error == boost::asio::error::eof)
+      try
       {
-         std::cout << "Got EOF... stopping writer" << std::endl;
-         return;
+         boost::asio::write(socket, request);
       }
-      else if (error)
+      catch (std::exception& e)
       {
-         std::cout << "ASIO Error: " << error.message() << std::endl;
-         return;
+         std::cerr << "Exception: " << e.what() << "\n";
       }
-
    }
    else if (connectionState == StateWaitingRegistration)
    {
@@ -381,16 +383,13 @@ void PlayerNSDClient::processWriter()
       std::ostream request_stream(&request);
       request_stream << msg;
       boost::system::error_code error;
-      boost::asio::write(socket, request, error);
-      if (error == boost::asio::error::eof)
+      try
       {
-         std::cout << "Got EOF... stopping writer" << std::endl;
-         return;
+         boost::asio::write(socket, request);
       }
-      else if (error)
+      catch (std::exception& e)
       {
-         std::cout << "ASIO Error: " << error.message() << std::endl;
-         return;
+         std::cerr << "Exception: " << e.what() << "\n";
       }
    }
 }

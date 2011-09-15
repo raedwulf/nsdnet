@@ -174,7 +174,7 @@ public:
         lock_guard guard(mutex);
 
         unsigned long unfinished = unfinished_tasks - 1;
-        if (unfinished < 0) {
+        if (unfinished_tasks == 0) {
             throw std::logic_error("Task done reported more times than the number of elements in the queue");
         }
 
