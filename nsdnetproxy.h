@@ -105,13 +105,13 @@ class PLAYERCC_EXPORT NSDNetProxy : public ClientProxy
       /// Send a message using std::string.
       void SendMessage(const std::string &target, const std::string &message)
       {
-         SendMessage(target, message.length() + 1, message.c_str());
+         SendMessage(target, message.length(), message.c_str());
       }
 
       /// Send a message using std::string (broadcast).
       void SendMessage(const std::string &message)
       {
-         SendMessage(message.length() + 1, message.c_str());
+         SendMessage(message.length(), message.c_str());
       }
 
       /// Received message.
