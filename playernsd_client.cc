@@ -313,6 +313,7 @@ void PlayerNSDClient::Register(const std::string& clientID)
       catch (std::exception& e)
       {
          std::cerr << "Exception: " << e.what() << "\n";
+         return;
       }
    }
    else if (connectionState == StateWaitingRegistration)
@@ -390,6 +391,7 @@ void PlayerNSDClient::processWriter()
       catch (std::exception& e)
       {
          std::cerr << "Exception: " << e.what() << "\n";
+         return;
       }
    }
 }
