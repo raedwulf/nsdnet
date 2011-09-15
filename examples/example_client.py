@@ -46,6 +46,7 @@ for cid in proxy.GetClientList():
 # some random seed
 random.seed(time.time())
 
+j = 0
 for i in range(0, 1000):
   # random bot movement every 10
 #  if i % 10 == 0:
@@ -67,15 +68,20 @@ for i in range(0, 1000):
     # Broadcast position
     proxy.SendMessage(pp)
     # Anything to receive?
-    if proxy.ReceiveMessageCount() > 0:
+    while proxy.ReceiveMessageCount() > 0:
       msg = proxy.ReceiveMessage()
       if msg != None:
         # Unpickle the message
         msgpickle = pickle.loads(msg.message)
         print "%s: %s [%d]" % (msg.source, msgpickle, i)
   # Broadcast Hello World
-  proxy.SendMessage(pickle.dumps(("string", "Hello World 1")))
-  time.sleep(1.0)
+  time.sleep(0.1)
+  proxy.SendMessage(pickle.dumps(("string", "Hello World " + str(j))))
+  j += 1
+  time.sleep(0.1)
+  proxy.SendMessage(pickle.dumps(("string", "Hello World " + str(j))))
+  j += 1
+  time.sleep(0.1)
 
 
 del proxy

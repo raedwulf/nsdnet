@@ -22,6 +22,7 @@
  * \author University of York
  */
 
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <libplayerc/playerc.h>
@@ -90,6 +91,10 @@ void nsdnet_putmsg (nsdnet_t *device, player_msghdr_t *header, uint8_t *data)
 			player_nsdnet_recv_data_t *recv_data = (player_nsdnet_recv_data_t *) data;
 			/* TODO: Detect overflow. */
 			nsdmsg_t *m = device->queue + (device->queue_head % MAX_MESSAGES);
+			if (device->queue_head - device->queue_tail >= MAX_MESSAGES) {
+				printf("message overflow!");
+				device->queue_tail++;
+			}
 			m->timestamp = time(NULL);
 			strncpy(m->clientid, recv_data->clientid, CLIENTID_LEN - 1);
 			m->msg_count = recv_data->msg_count;
@@ -185,7 +190,6 @@ int nsdnet_property_get(nsdnet_t *device, const char *variable)
 	memcpy(device->propval, resp->value, resp->value_count);
 	free(resp);
 	return 0;
-
 }
 
 /**
