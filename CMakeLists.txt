@@ -15,7 +15,7 @@ FIND_PACKAGE(Boost COMPONENTS unit_test_framework filesystem system thread)
 
 # Settings
 SET (CMAKE_CXX_FLAGS "-Wall")
-SET (LIB_SUFFIX "" CACHE STRING "Define suffix of directory name (32/64)")
+SET (LIB_SUFFIX "$ENV{LIBSUFFIXDIR}" CACHE STRING "Define suffix of directory name (32/64)")
 SET (LIB_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}" CACHE STRING "Directory where lib will install")
 SET (INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "The directory the headers are installed in")
 SET (CMAKE_MODULES_INSTALL_DIR "${CMAKE_ROOT}/Modules" CACHE PATH "The directory to install FindNSDNet.cmake to")
