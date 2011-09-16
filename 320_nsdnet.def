@@ -19,6 +19,10 @@ message { DATA, ERROR, 2, player_nsdnet_error_data_t };
 message { REQ, LISTCLIENTS, 1, player_nsdnet_listclients_req_t };
 /** Request/reply subtype: get a property's value. */
 message { REQ, PROPGET, 2, player_nsdnet_propget_req_t };
+/** Request/reply subtype: send a message. */
+message { REQ, SEND, 3, player_nsdnet_send_req_t };
+/** Request/reply subtype: set a property. */
+message { REQ, PROPSET, 4, player_nsdnet_propset_req_t };
 
 /** Client ID maximum length. */
 #define PLAYER_NSDNET_CLIENTID_LEN 64
@@ -118,3 +122,32 @@ typedef struct player_nsdnet_propget_req
  /** The value. */
  char *value;
 } player_nsdnet_propget_req_t;
+
+/** @brief Command: send (@ref PLAYER_NSDNET_REQ_SEND)
+
+The @p nsdnet interface accepts a command that is a message to be sent to another player. */
+typedef struct player_nsdnet_send_req
+{
+ /** The client id of the destination node. */
+ char clientid[PLAYER_NSDNET_CLIENTID_LEN];
+ /** The type of message. */
+ char type;
+ /** The length of the message to send. */
+ uint32_t msg_count;
+ /** The message to send. */
+ char *msg;
+} player_nsdnet_send_req_t;
+
+/** @brief Command: propset (@ref PLAYER_NSDNET_REQ_PROPSET)
+
+The @p nsdnet interface accepts a command that sets a property on the daemon. */
+typedef struct player_nsdnet_propset_req
+{
+ /** The key. */
+ char key[PLAYER_NSDNET_KEY_LEN];
+ /** The length of the value. */
+ uint32_t value_count;
+ /** The value. */
+ char *value;
+} player_nsdnet_propset_req_t;
+

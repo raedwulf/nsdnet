@@ -144,13 +144,13 @@ int nsdnet_get_listclients(nsdnet_t *device)
  */
 int nsdnet_send_message(nsdnet_t *device, const char *target, int len, char *message)
 {
-	player_nsdnet_send_cmd_t cmd;
-	memset(&cmd, 0, sizeof(cmd));
+	player_nsdnet_send_req_t req;
+	memset(&req, 0, sizeof(req));
 	if (target)
-		strncpy(cmd.clientid, target, sizeof(cmd.clientid) - 1);
-	cmd.msg_count = len;
-	cmd.msg = message;
-	return playerc_client_write(device->info.client, &device->info, PLAYER_NSDNET_CMD_SEND, &cmd, NULL);
+		strncpy(req.clientid, target, sizeof(req.clientid) - 1);
+	req.msg_count = len;
+	req.msg = message;
+	return playerc_client_request(device->info.client, &device->info, PLAYER_NSDNET_REQ_SEND, &req, NULL);
 }
 
 /**
@@ -197,12 +197,12 @@ int nsdnet_property_get(nsdnet_t *device, const char *variable)
  */
 int nsdnet_property_set(nsdnet_t *device, const char *variable, const char *value)
 {
-	player_nsdnet_propset_cmd_t cmd;
-	memset(&cmd, 0, sizeof(cmd));
-	strncpy(cmd.key, variable, PLAYER_NSDNET_KEY_LEN-1);
-	cmd.value_count = strlen(value);
-	cmd.value = (char *)value;
-	return playerc_client_write(device->info.client, &device->info,
-		PLAYER_NSDNET_CMD_PROPSET, &cmd, NULL);
+	player_nsdnet_propset_req_t req;
+	memset(&req, 0, sizeof(req));
+	strncpy(req.key, variable, PLAYER_NSDNET_KEY_LEN-1);
+	req.value_count = strlen(value);
+	req.value = (char *)value;
+	return playerc_client_request(device->info.client, &device->info,
+		PLAYER_NSDNET_REQ_PROPSET, &req, NULL);
 }
 

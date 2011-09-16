@@ -251,6 +251,21 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
             return 0;
          }
          else if (Message::MatchMessage(hdr, PLAYER_MSGTYPE_REQ,
+            PLAYER_NSDNET_REQ_SEND, device_addr))
+         {
+            player_nsdnet_send_req *req = (player_nsdnet_send_req *)data;
+            if (verbose)
+               std::cout << "NSDNetDriver: Sending message request to '" <<
+                  (strlen(req->clientid)?"all":req->clientid) << "', " << req->msg << std::endl;
+            if (strlen(req->clientid))
+               client->Send(req->clientid, req->msg_count, req->msg);
+            else
+               client->Send(req->msg_count, req->msg);
+            Publish(device_addr, PLAYER_MSGTYPE_RESP_ACK, PLAYER_NSDNET_REQ_SEND,
+               NULL, 0, NULL);
+            return 0;
+         }
+         else if (Message::MatchMessage(hdr, PLAYER_MSGTYPE_REQ,
             PLAYER_NSDNET_REQ_PROPGET, device_addr))
          {
             player_nsdnet_propget_req *req = (player_nsdnet_propget_req *)data;
@@ -295,6 +310,18 @@ class NSDNetDriver : public ThreadedDriver, PlayerNSDClient::Handler
                std::cout << "NSDNetDriver: Send property set for property " << cmd->key <<
                   " with value " << cmd->value << std::endl;
             client->PropertySet(cmd->key, cmd->value);
+            return 0;
+         }
+         else if (Message::MatchMessage(hdr, PLAYER_MSGTYPE_REQ,
+            PLAYER_NSDNET_REQ_PROPSET, device_addr))
+         {
+            player_nsdnet_propset_req *req = (player_nsdnet_propset_req *)data;
+            if (verbose)
+               std::cout << "NSDNetDriver: Send property set request for property " << req->key <<
+                  " with value " << req->value << std::endl;
+            client->PropertySet(req->key, req->value);
+            Publish(device_addr, PLAYER_MSGTYPE_RESP_ACK, PLAYER_NSDNET_REQ_PROPSET,
+               NULL, 0, NULL);
             return 0;
          }
          else if (Message::MatchMessage(hdr, PLAYER_MSGTYPE_DATA,
